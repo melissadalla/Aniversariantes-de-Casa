@@ -1,10 +1,20 @@
 import { nomeDoMes } from '@/lib/aniversario'
 import type { MesReferencia } from '@/lib/aniversario'
 
+/** Rótulo acima do título, ao lado do ícone. */
 export const TITULO = 'Aniversariantes de casa'
 
-export function subtitulo(mes: MesReferencia): string {
-  return `Mês de ${nomeDoMes(mes.mes)}/${mes.ano}`
+/**
+ * Título em duas partes: o começo em Outfit e o destaque (o mês) em DM Serif
+ * Display itálico, como pede a identidade para títulos de posts.
+ */
+export function tituloDoMes(mes: MesReferencia): { inicio: string; destaque: string } {
+  return { inicio: 'Celebrando mais um ano em ', destaque: nomeDoMes(mes.mes) }
+}
+
+export function subtitulo(mes: MesReferencia, total: number): string {
+  const pessoas = `${total} ${total === 1 ? 'pessoa fazendo' : 'pessoas fazendo'}`
+  return `${mes.ano} · ${pessoas} história com a gente`
 }
 
 export function tempoDeCasa(anos: number): string {

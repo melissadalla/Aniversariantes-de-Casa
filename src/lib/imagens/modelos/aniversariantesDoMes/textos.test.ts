@@ -8,14 +8,28 @@ import {
   nomeCurto,
   subtitulo,
   tempoDeCasa,
+  tituloDoMes,
 } from '@/lib/imagens/modelos/aniversariantesDoMes/textos'
 
 /** Cabe quem tiver até N caracteres — medidor determinístico para o teste. */
 const ate = (n: number) => (texto: string) => texto.length <= n
 
+describe('tituloDoMes', () => {
+  it('põe o mês por extenso no destaque', () => {
+    expect(tituloDoMes({ ano: 2026, mes: 12 })).toEqual({
+      inicio: 'Celebrando mais um ano em ',
+      destaque: 'dezembro',
+    })
+  })
+})
+
 describe('subtitulo', () => {
-  it('monta mês por extenso e ano', () => {
-    expect(subtitulo({ ano: 2026, mes: 7 })).toBe('Mês de julho/2026')
+  it('traz o ano e a contagem de pessoas', () => {
+    expect(subtitulo({ ano: 2026, mes: 7 }, 5)).toBe('2026 · 5 pessoas fazendo história com a gente')
+  })
+
+  it('singulariza uma pessoa', () => {
+    expect(subtitulo({ ano: 2026, mes: 7 }, 1)).toBe('2026 · 1 pessoa fazendo história com a gente')
   })
 })
 
