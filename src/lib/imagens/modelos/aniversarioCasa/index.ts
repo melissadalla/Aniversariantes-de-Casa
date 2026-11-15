@@ -1,7 +1,6 @@
 import {
   caixaArredondada,
   coverEm,
-  desenharEscalado,
   desenharLinhas,
   gradiente135,
   larguraMaxima,
@@ -9,8 +8,7 @@ import {
 import { quebrarBloco } from '@/lib/imagens/medidas'
 import {
   CORPO,
-  FUNDO_PRINCIPAL,
-  FUNDO_SHAPE_ESPELHADO,
+  CARTAO,
   GAP_TITULO_CORPO,
   LARGURA_CONTEUDO,
   LOGO,
@@ -85,16 +83,23 @@ export const aniversarioCasa: Modelo<ParamsAniversario> = {
     const conteudo = medirConteudo(ctx, anos, primeiroNome(nome))
     const shape = caixaShape(conteudo.altura)
 
-    desenharEscalado(ctx, fundo, FUNDO_PRINCIPAL)
+    coverEm(ctx, fundo, { x: 0, y: 0, largura: TAMANHO.largura, altura: TAMANHO.altura })
     ctx.drawImage(logo, LOGO.x, LOGO.y, LOGO.largura, LOGO.altura)
 
-    // A mesma imagem, em outra escala e outro deslocamento: o shape é uma
-    // janela para outra região do fundo, e é daí que vem o contraste.
-    ctx.save()
+    // Cartão: Brown translúcido, para o texto longo ler bem sobre os brilhos,
+    // com a borda no gradiente da versão, como toda linha da arte.
     caixaArredondada(ctx, shape, RAIO_SHAPE)
-    ctx.clip()
-    coverEm(ctx, fundo, shape, FUNDO_SHAPE_ESPELHADO)
-    ctx.restore()
+    ctx.fillStyle = CARTAO.fundo
+    ctx.fill()
+    const meia = CARTAO.borda / 2
+    caixaArredondada(
+      ctx,
+      { x: shape.x + meia, y: shape.y + meia, largura: shape.largura - CARTAO.borda, altura: shape.altura - CARTAO.borda },
+      RAIO_SHAPE - meia,
+    )
+    ctx.lineWidth = CARTAO.borda
+    ctx.strokeStyle = gradiente135(ctx, shape)
+    ctx.stroke()
 
     desenharConteudo(ctx, conteudo, shape.y)
     desenharTitulo1(ctx)

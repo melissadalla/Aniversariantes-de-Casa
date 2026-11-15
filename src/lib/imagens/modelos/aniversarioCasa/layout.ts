@@ -21,6 +21,7 @@ export const LOGO: Caixa = { x: MARGEM, y: MARGEM, largura: 177, altura: 66 }
  * passava da borda.
  */
 export const LARGURA_SHAPE = 662
+/** `radius-md` do design system. */
 export const RAIO_SHAPE = 32
 export const PADDING_SHAPE = 40
 export const GAP_TITULO_CORPO = 20
@@ -35,27 +36,16 @@ export function caixaShape(altura: number): Caixa {
 }
 
 /**
- * O fundo não entra em cover na arte inteira: no Canva ele está ESPELHADO na
- * horizontal, maior que a página e deslocado. Os números saíram de casar a
- * imagem original contra o fundo já composto que o Canva exportava antes — o
- * resíduo cai a ruído de grão, sem estrutura, então o alinhamento confere.
- *
- * O enquadramento é dado pela largura desenhada, não por um fator de escala:
- * assim trocar a resolução do arquivo não move a arte.
+ * Fundo e cartão na versão escura da Identidade Visual SplitC, a mesma da peça
+ * do mês: o fundo oficial `video-fundo-escuro-horizontal` em tela cheia (cover)
+ * e o cartão do texto em Brown translúcido, com borda fina no `gradiente-1` e
+ * canto `radius-md`. O texto é longo, por isso o cartão continua: ele garante a
+ * leitura sobre os brilhos do fundo.
  */
-export const FUNDO_PRINCIPAL = { largura: 1316, x: -116, y: -91, espelhado: true }
-
-/**
- * Dentro do shape a mesma imagem entra em cover da caixa dele, o que no
- * original dá um recorte bem mais fechado que o do fundo — é esse desencontro
- * de enquadramento que separa os dois.
- *
- * Diferente do fundo, este enquadramento NÃO foi possível recuperar do export:
- * o interior do shape é gradiente liso demais, e placements bem diferentes dão
- * o mesmo resíduo. Cover é o comportamento padrão de moldura do Canva e é o que
- * a captura do arquivo sugere (a imagem preenche a altura do shape).
- */
-export const FUNDO_SHAPE_ESPELHADO = true
+export const CARTAO = {
+  fundo: 'rgba(25, 13, 1, 0.74)',
+  borda: 2,
+}
 
 export const LARGURA_CONTEUDO = LARGURA_SHAPE - PADDING_SHAPE * 2
 
@@ -91,7 +81,7 @@ export const CORPO = {
   tamanho: 18 * ESCALA_CANVA,
   /** 33px entre linhas, medidos no export (o Canva não expõe o valor). */
   entrelinha: 33 / (18 * ESCALA_CANVA),
-  cor: '#ffffff',
+  cor: '#fff7f0',
 }
 
 /**
@@ -111,5 +101,6 @@ export function fonteOutfit(tamanho: number, negrito: boolean): string {
 }
 
 /** Servidos de `public/`, então o base path do Vite entra na URL. */
-export const URL_BACKGROUND = `${import.meta.env.BASE_URL}background.webp`
-export const URL_LOGO = `${import.meta.env.BASE_URL}logo.png`
+export const URL_BACKGROUND = `${import.meta.env.BASE_URL}fundo-escuro-horizontal.jpg`
+/** Logo negativo oficial (800x297), a da versão escura. */
+export const URL_LOGO = `${import.meta.env.BASE_URL}logo-splitc-negativo.png`
