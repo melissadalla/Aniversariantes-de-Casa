@@ -2,6 +2,7 @@ import { iniciais, nomeDoMes } from '@/lib/aniversario'
 import type { MesReferencia } from '@/lib/aniversario'
 import { urlDaFotoParaCanvas } from '@/lib/fotos'
 import { coverEm } from '@/lib/imagens/canvas'
+import { desenharConfete } from '@/lib/imagens/confete'
 import { distribuir } from '@/lib/imagens/modelos/aniversariantesDoMes/grade'
 import {
   AREA_DAS_PESSOAS,
@@ -90,7 +91,12 @@ export const aniversariantesDoMes: Modelo<ParamsDoMes> = {
 
     desenharArcos(ctx)
     const cabecalho = desenharCabecalho(ctx, mes, pessoas.length)
-    desenharConfete(ctx, mes, [cabecalho, bloco.caixa, logoCaixa])
+    desenharConfete(ctx, {
+      ...dimensoes(),
+      semente: mes.ano * 100 + mes.mes,
+      ocupadas: [cabecalho, bloco.caixa, logoCaixa],
+      quantidade: 52,
+    })
     desenharPessoas(ctx, pessoas, bloco, recursos)
 
     ctx.drawImage(logo, logoCaixa.x, logoCaixa.y, logoCaixa.largura, logoCaixa.altura)
@@ -382,87 +388,6 @@ function desenharFoto(
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(iniciais(pessoa.nome), cx, cy)
-  }
-  ctx.restore()
-}
-
-/** PRNG pequeno e determinístico: o mesmo mês gera sempre o mesmo confete. */
-function sementeira(semente: number): () => number {
-  let a = semente >>> 0
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0
-    let t = a
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-function dentro(px: number, py: number, caixa: Caixa, folga: number): boolean {
-  return (
-    px > caixa.x - folga &&
-    px < caixa.x + caixa.largura + folga &&
-    py > caixa.y - folga &&
-    py < caixa.y + caixa.altura + folga
-  )
-}
-
-/**
- * Confete discreto nas cores da marca, só nas áreas livres: nunca sobre o
- * título, as pessoas ou a logo. É o que dá o clima de comemoração.
- */
-function desenharConfete(ctx: CanvasRenderingContext2D, mes: MesReferencia, ocupadas: Caixa[]): void {
-  const aleatorio = sementeira(mes.ano * 100 + mes.mes)
-  const cores = [COR.amarelo, COR.laranja, COR.intenso, COR.coral, COR.beige]
-  const margem = 36
-  let colocados = 0
-
-  ctx.save()
-  for (let tentativa = 0; tentativa < 900 && colocados < 52; tentativa += 1) {
-    const px = margem + aleatorio() * (TAMANHO.largura - margem * 2)
-    const py = margem + aleatorio() * (TAMANHO.altura - margem * 2)
-    if (ocupadas.some((caixa) => dentro(px, py, caixa, 44))) continue
-
-    const cor = cores[Math.floor(aleatorio() * cores.length)]
-    const tipo = aleatorio()
-    const escala = 0.7 + aleatorio() * 0.7
-    ctx.globalAlpha = (cor === COR.beige ? 0.35 : 0.55) + aleatorio() * 0.35
-    ctx.save()
-    ctx.translate(px, py)
-    ctx.rotate(aleatorio() * Math.PI * 2)
-
-    if (tipo < 0.45) {
-      // Tira de papel.
-      ctx.fillStyle = cor
-      ctx.beginPath()
-      ctx.roundRect(-3 * escala, -10 * escala, 6 * escala, 20 * escala, 2)
-      ctx.fill()
-    } else if (tipo < 0.7) {
-      // Bolinha.
-      ctx.fillStyle = cor
-      ctx.beginPath()
-      ctx.arc(0, 0, 4.5 * escala, 0, Math.PI * 2)
-      ctx.fill()
-    } else if (tipo < 0.85) {
-      // Anel em traço fino.
-      ctx.strokeStyle = cor
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.arc(0, 0, 7 * escala, 0, Math.PI * 2)
-      ctx.stroke()
-    } else {
-      // Serpentina curta.
-      ctx.strokeStyle = cor
-      ctx.lineWidth = 2.5
-      ctx.lineCap = 'round'
-      ctx.beginPath()
-      ctx.moveTo(-14 * escala, 0)
-      ctx.bezierCurveTo(-7 * escala, -9 * escala, 0, 9 * escala, 7 * escala, 0)
-      ctx.bezierCurveTo(10 * escala, -5 * escala, 13 * escala, -4 * escala, 15 * escala, 0)
-      ctx.stroke()
-    }
-    ctx.restore()
-    colocados += 1
   }
   ctx.restore()
 }

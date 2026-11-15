@@ -1,14 +1,17 @@
 import {
   caixaArredondada,
   coverEm,
+  desenharEscalado,
   desenharLinhas,
   gradiente135,
   larguraMaxima,
 } from '@/lib/imagens/canvas'
+import { desenharConfete, sementeDeTexto } from '@/lib/imagens/confete'
 import { quebrarBloco } from '@/lib/imagens/medidas'
 import {
   CORPO,
-  CARTAO,
+  FUNDO_PRINCIPAL,
+  FUNDO_SHAPE_ESPELHADO,
   GAP_TITULO_CORPO,
   LARGURA_CONTEUDO,
   LOGO,
@@ -34,7 +37,7 @@ import {
   temCopy,
   titulo2,
 } from '@/lib/imagens/modelos/aniversarioCasa/textos'
-import type { Linha, Modelo } from '@/lib/imagens/tipos'
+import type { Caixa, Linha, Modelo } from '@/lib/imagens/tipos'
 
 export interface ParamsAniversario {
   nome: string
@@ -83,24 +86,33 @@ export const aniversarioCasa: Modelo<ParamsAniversario> = {
     const conteudo = medirConteudo(ctx, anos, primeiroNome(nome))
     const shape = caixaShape(conteudo.altura)
 
-    coverEm(ctx, fundo, { x: 0, y: 0, largura: TAMANHO.largura, altura: TAMANHO.altura })
+    desenharEscalado(ctx, fundo, FUNDO_PRINCIPAL)
     ctx.drawImage(logo, LOGO.x, LOGO.y, LOGO.largura, LOGO.altura)
 
-    // Cartão: Brown translúcido, para o texto longo ler bem sobre os brilhos,
-    // com a borda no gradiente da versão, como toda linha da arte.
+    // A mesma imagem, em outra escala e outro deslocamento: o shape é uma
+    // janela para outra região do fundo, e é daí que vem o contraste.
+    ctx.save()
     caixaArredondada(ctx, shape, RAIO_SHAPE)
-    ctx.fillStyle = CARTAO.fundo
-    ctx.fill()
-    const meia = CARTAO.borda / 2
-    caixaArredondada(
-      ctx,
-      { x: shape.x + meia, y: shape.y + meia, largura: shape.largura - CARTAO.borda, altura: shape.altura - CARTAO.borda },
-      RAIO_SHAPE - meia,
-    )
-    ctx.lineWidth = CARTAO.borda
-    ctx.strokeStyle = gradiente135(ctx, shape)
-    ctx.stroke()
+    ctx.clip()
+    coverEm(ctx, fundo, shape, FUNDO_SHAPE_ESPELHADO)
+    ctx.restore()
 
+    // Confete da peça do mês, só nas áreas livres: fora do cartão, da logo e
+    // do título. A semente vem do nome, então a arte sai igual toda vez.
+    const titulo = caixaDoTitulo1(ctx)
+    desenharConfete(ctx, {
+      largura: TAMANHO.largura,
+      altura: TAMANHO.altura,
+      semente: sementeDeTexto(`${nome}-${anos}`),
+      ocupadas: [shape, LOGO, titulo],
+      quantidade: 26,
+      escala: 0.8,
+      folga: 24,
+      margem: 24,
+    })
+
+    ctx.letterSpacing = TRACKING
+    ctx.textBaseline = 'top'
     desenharConteudo(ctx, conteudo, shape.y)
     desenharTitulo1(ctx)
   },
@@ -200,7 +212,15 @@ function desenharConteudo(
   }
 }
 
-function desenharTitulo1(ctx: CanvasRenderingContext2D): void {
+interface GeometriaDoTitulo1 {
+  linhas: Linha[]
+  entrelinha: number
+  primeiraBase: number
+  topo: number
+  largura: number
+}
+
+function geometriaDoTitulo1(ctx: CanvasRenderingContext2D): GeometriaDoTitulo1 {
   const fonte = () => fonteTitulo1()
   ctx.font = fonte()
   // Antes de medir, não só antes de desenhar: com 'top' herdado do corpo, o
@@ -228,11 +248,25 @@ function desenharTitulo1(ctx: CanvasRenderingContext2D): void {
   const primeiraBase = ultimaBase - (linhas.length - 1) * entrelinha
   const topo = primeiraBase - TITULO_1.tamanho
 
+  return { linhas, entrelinha, primeiraBase, topo, largura: larguraMaxima(ctx, linhas, fonte) }
+}
+
+/** Caixa ocupada pelo título 1, para o confete desviar dele. */
+function caixaDoTitulo1(ctx: CanvasRenderingContext2D): Caixa {
+  ctx.save()
+  const g = geometriaDoTitulo1(ctx)
+  ctx.restore()
+  return { x: TITULO_1.x, y: g.topo, largura: g.largura, altura: TITULO_1.fimDaTinta - g.topo }
+}
+
+function desenharTitulo1(ctx: CanvasRenderingContext2D): void {
+  const fonte = () => fonteTitulo1()
+  const g = geometriaDoTitulo1(ctx)
   ctx.fillStyle = gradiente135(ctx, {
     x: TITULO_1.x,
-    y: topo,
-    largura: larguraMaxima(ctx, linhas, fonte),
-    altura: linhas.length * entrelinha,
+    y: g.topo,
+    largura: g.largura,
+    altura: g.linhas.length * g.entrelinha,
   })
-  desenharLinhas(ctx, linhas, TITULO_1.x, primeiraBase, entrelinha, fonte)
+  desenharLinhas(ctx, g.linhas, TITULO_1.x, g.primeiraBase, g.entrelinha, fonte)
 }
