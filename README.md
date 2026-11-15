@@ -205,6 +205,7 @@ src/
       tipos.ts            # contrato Modelo<P>: o que toda arte precisa expor
       medidas.ts          # quebra de linha pura, com medidor injetado
       canvas.ts           # cover, caixa arredondada, gradiente, texto com pesos
+      confete.ts          # confete das artes, com semente, fora das áreas ocupadas
       recursos.ts         # cache de imagens e fontes
       gerar.ts            # cria o canvas, espera os recursos, delega o desenho
       download.ts         # baixarBlob
@@ -272,17 +273,44 @@ card cai no placeholder de iniciais.
 A lista continua usando a URL original: exibir na tela não precisa de CORS, e
 assim a navegação normal não passa pelo proxy.
 
-### Grade da peça do mês
+### Peça do mês: Identidade Visual SplitC
 
-`grade.ts` decide a distribuição: no máximo 6 colunas, enchendo o mínimo de
-linhas e depois equilibrando — 7 pessoas viram 4+3, e não 6+1. Cada linha é
-centralizada na largura do bloco, que por sua vez é centralizado na arte: uma
-linha incompleta fica no meio das de cima. Acima de 12 pessoas o bloco passaria da altura da arte, e aí ele é
-reduzido proporcionalmente em vez de cortar gente.
+A peça 1920x1080 segue o design system **Identidade Visual SplitC**, na versão
+escura e com as regras de posts de redes sociais:
 
-O nome no card é sempre primeiro e último, com a partícula que vier antes do
-último (`Maria de Souza`, `Ana dos Santos`) — abreviar em iniciais ficava ruim de
-ler. Se nem isso couber na largura do card, sobra o primeiro nome.
+- fundo oficial `video-fundo-escuro-horizontal` (`public/fundo-escuro-horizontal.jpg`)
+  em tela cheia, sem zoom;
+- logo negativo oficial (`public/logo-splitc-negativo.png`) centralizada na base;
+- rótulo "Aniversariantes de casa" (nunca em caixa alta) com o ícone
+  `party-popper` da Lucide, em traço, num círculo com contorno no gradiente;
+- título em Outfit semibold Beige com o mês em DM Serif Display itálico no
+  `gradiente-1` (yellow → orange-default → orange-intense), o gradiente medido
+  no próprio texto;
+- fotos redondas com aro no gradiente e selo de tempo de casa em pílula no
+  gradiente com texto Beige; nome em Outfit semibold Beige e setor em laranja;
+- arcos finos no gradiente nos cantos e confete discreto nas cores da marca.
+
+As cores e o gradiente estão em `modelos/aniversariantesDoMes/layout.ts`
+(`COR`, `GRADIENTE_1`), com os valores dos tokens do design system.
+
+**Grade.** `grade.ts` enche o mínimo de linhas e depois equilibra: 7 pessoas
+viram 4+3, e não 6+1. A peça testa de 5 a 9 colunas e fica com a distribuição
+que deixa as fotos maiores; cada linha é centralizada, e colunas alternadas
+descem um pouco (`ONDA`) para a fileira não parecer grade de slide. Se o bloco
+não couber entre o subtítulo e a logo, ele encolhe por inteiro em vez de cortar
+gente.
+
+O nome é sempre primeiro e último, com a partícula que vier antes do último
+(`Maria de Souza`, `Ana dos Santos`) — abreviar em iniciais ficava ruim de ler.
+Se nem isso couber na largura da pessoa, sobra o primeiro nome.
+
+### Confete
+
+`src/lib/imagens/confete.ts` desenha o confete das duas artes: tiras, bolinhas,
+anéis e serpentinas nas cores da marca, só nas áreas livres (cada arte informa
+o que está ocupado: título, pessoas, cartão, logo). A distribuição vem de um
+PRNG com semente — o mês na peça do mês, o nome na individual —, então a mesma
+arte sai sempre igual.
 
 Para acrescentar uma arte nova:
 
